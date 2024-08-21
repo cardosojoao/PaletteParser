@@ -65,16 +65,21 @@ namespace PaletteParser.Parsers
         private List<int> ConvertData(string[] input)
         {
             List<int> data = new(input.Length);
+            int index = 0;
             foreach (string line in input)
             {
                 if (LineValid(line))
                 {
-                    byte[] rgb = SplitLine(line);
-                    rgb[0] = (byte)((rgb[0] >> 5) << 6);    // keep first 3 bits of R
-                    rgb[1] = (byte)((rgb[1] >> 5) << 3);    // keep first 3 bits of G
-                    rgb[2] = (byte)(rgb[2] >> 5);           // keep first 3 bits of B
+                    int[] rgb = SplitLine(line);
+                    Console.Write($"{index} - {rgb[0]},{rgb[1]},{rgb[2]} ");
+                    rgb[0] = (int)((rgb[0] >> 5) << 6);    // keep first 3 bits of R
+                    rgb[1] = (int)((rgb[1] >> 5) << 3);    // keep first 3 bits of G
+                    rgb[2] = (int)(rgb[2] >> 5);           // keep first 3 bits of B
+                    Console.Write($"->{rgb[0]},{rgb[1]},{rgb[2]} ");
                     int color = (int)rgb[0] + (int)rgb[1] + (int)rgb[2];
+                    Console.WriteLine($"->{color} ");
                     data.Add(color);
+                    index++;
                 }
             }
             return data;
@@ -102,18 +107,18 @@ namespace PaletteParser.Parsers
             return !(line.Length == 0 || line.StartsWith("Name:") || line.StartsWith("Channels:") || line.StartsWith("Columns:") || line.StartsWith('#') || line.Equals("GIMP Palette", StringComparison.InvariantCultureIgnoreCase));
         }
 
-        private byte[] SplitLine(string line)
+        private int[] SplitLine(string line)
         {
 
             line = string.Join(" ", line.Replace('\t', ' ').Split(new[] { ' ' }, StringSplitOptions.RemoveEmptyEntries));
             string[] cols = line.Split(new char[] { ' ' });
 
             // we just need 3 values
-            byte[] bytes = new byte[3];
+            int[] bytes = new int[3];
 
             for (int i = 0; i < bytes.Length; i++)
             {
-                bytes[i] = Convert.ToByte(cols[i]);
+                bytes[i] = Convert.ToInt32(cols[i]);
             }
             return bytes;
         }
