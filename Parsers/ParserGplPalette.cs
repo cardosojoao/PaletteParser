@@ -65,6 +65,7 @@ namespace PaletteParser.Parsers
         private List<int> ConvertData(string[] input)
         {
             List<int> data = new(input.Length);
+            int index = 0;
             foreach (string line in input)
             {
                 if (LineValid(line))
@@ -75,6 +76,7 @@ namespace PaletteParser.Parsers
                     rgb[2] = (rgb[2] >> 5);           // keep first 3 bits of B
                     int color = rgb[0] + rgb[1] + rgb[2];
                     data.Add(color);
+                    index++;
                 }
             }
             return data;
@@ -113,7 +115,7 @@ namespace PaletteParser.Parsers
 
             for (int i = 0; i < bytes.Length; i++)
             {
-                bytes[i] = Convert.ToByte(cols[i]);
+                bytes[i] = Convert.ToInt32(cols[i]);
             }
             return bytes;
         }
