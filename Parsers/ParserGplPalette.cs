@@ -22,13 +22,14 @@ namespace PaletteParser.Parsers
 
             if (data.Count > 0)
             {
-                IPaletteGeneric palette = CreatePalette(9);
+                IPaletteGeneric palette = CreatePalette(9);     // gpl always create 9b palette
                 byte index = 0;
                 for (int color = 0; color < data.Count; color++)
                 {
                     palette[index] = data[index];
                     index++;
                 }
+                palette.Count = index;
                 return palette;
             }
             else
@@ -39,12 +40,11 @@ namespace PaletteParser.Parsers
         public void Export(IPaletteGeneric pal)
         {
             StringBuilder text = new(3096);
-
-
             text.AppendLine("GIMP Palette");
+            text.AppendLine("Channels: RGB");
             text.AppendLine("# Created using Palette parser utility.");
             text.Append("# ").AppendLine(_args.InputFile);
-            for (int index = 0; index < 256; index++)
+            for (int index = 0; index < pal.Count; index++)
             {
                 var rgb = Color2RGB(pal[(byte)index]);
                 text.Append(string.Format("{0,3} ", rgb.R));
@@ -52,7 +52,7 @@ namespace PaletteParser.Parsers
                 text.Append(string.Format("{0,3} ", rgb.B));
                 text.AppendLine();
             }
-            File.WriteAllText(_args.OutputFile, text.ToString().ToLower());
+            File.WriteAllText(_args.OutputFile, text.ToString());
         }
 
 
@@ -71,13 +71,10 @@ namespace PaletteParser.Parsers
                 if (LineValid(line))
                 {
                     int[] rgb = SplitLine(line);
-                    Console.Write($"{index} - {rgb[0]},{rgb[1]},{rgb[2]} ");
-                    rgb[0] = (int)((rgb[0] >> 5) << 6);    // keep first 3 bits of R
-                    rgb[1] = (int)((rgb[1] >> 5) << 3);    // keep first 3 bits of G
-                    rgb[2] = (int)(rgb[2] >> 5);           // keep first 3 bits of B
-                    Console.Write($"->{rgb[0]},{rgb[1]},{rgb[2]} ");
-                    int color = (int)rgb[0] + (int)rgb[1] + (int)rgb[2];
-                    Console.WriteLine($"->{color} ");
+                    rgb[0] = ((rgb[0] >> 5) << 6);    // keep first 3 bits of R
+                    rgb[1] = ((rgb[1] >> 5) << 3);    // keep first 3 bits of G
+                    rgb[2] = (rgb[2] >> 5);           // keep first 3 bits of B
+                    int color = rgb[0] + rgb[1] + rgb[2];
                     data.Add(color);
                     index++;
                 }

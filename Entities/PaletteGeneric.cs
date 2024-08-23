@@ -13,6 +13,8 @@ namespace PaletteParser.Entities
         /// </summary>
         public int Bits { get; private set; }
 
+        public int Count { get; set; }
+
         private int[] paletteData;
 
         public PaletteGeneric(int bits)
@@ -34,15 +36,15 @@ namespace PaletteParser.Entities
             }
         }
 
-        public static int Byte2Int(byte byteL, byte byteH)
-        {
-            return (int)(byteH * 256 + byteL);
-        }
+        //public static int Byte2Int(byte byteL, byte byteH)
+        //{
+        //    return (int)(byteH * 256 + byteL);
+        //}
 
-        public static (int byteL, int byteH) Int2Byte(int value)
-        {
-            return ((byte)(value & 255), (byte)(value >> 8));
-        }
+        //public static (int byteL, int byteH) Int2Byte(int value)
+        //{
+        //    return ((byte)(value & 255), (byte)(value >> 8));
+        //}
 
     }
 }
