@@ -32,6 +32,7 @@ namespace PaletteParser.Parsers
                         index++;
                     }
                 }
+                palette.Count = index;
                 return palette;
             }
             else
@@ -65,6 +66,14 @@ namespace PaletteParser.Parsers
                         text.Append('$').Append((color & 1).ToString("X2"));
                     }
                     index++;
+                    if(index>=pal.Count)
+                    {
+                        break;
+                    }
+                }
+                if (index >= pal.Count)
+                {
+                    break;
                 }
                 text.AppendLine();
             }
