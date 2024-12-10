@@ -111,13 +111,13 @@ namespace PaletteParser.Parsers
             string[] cols = line.Split(new char[] { ' ' });
 
             // we just need 3 values
-            int[] bytes = new int[3];
+            int[] rgb = new int[3];
 
-            for (int i = 0; i < bytes.Length; i++)
+            for (int i = 0; i < rgb.Length; i++)
             {
-                bytes[i] = Convert.ToInt32(cols[i]);
+                rgb[i] = Convert.ToInt32(cols[i]);
             }
-            return bytes;
+            return rgb;
         }
 
 
