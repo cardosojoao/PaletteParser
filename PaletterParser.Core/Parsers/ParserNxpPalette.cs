@@ -32,7 +32,6 @@ namespace PaletteParser.Core.Parsers
                 for (int color = 0; color < data.PaletteData.Count; color++)
                 {
                     palette[(byte)index] = data.PaletteData[index];
-                    //palette.Comments[(byte)index] = data.Comments[(byte)index];
                     index++;
                 }
                 palette.Count = index;
@@ -45,39 +44,17 @@ namespace PaletteParser.Core.Parsers
         }
         public void Export(IPaletteGeneric pal)
         {
-            StringBuilder text = new(3096);
-            if (pal.CommentsHeader.Count > 0)
-            {
-                foreach (string comment in pal.CommentsHeader)
-                {
-                    text.AppendLine(comment);
-                }
-            }
-            else
-            {
-                text.AppendLine("GIMP Palette");
-                text.AppendLine("Channels: RGBA");
-                text.AppendLine("# Created using Palette parser utility.");
-                text.Append("# ").AppendLine(_args.InputFile);
-            }
+            byte[] output = new byte[pal.Count * 2];
+            int outputIndex = 0;
             for (int index = 0; index < pal.Count; index++)
             {
-                var rgb = Color2RGB(pal[(byte)index]);
-                text.Append(string.Format("{0,3} ", rgb.R));
-                text.Append(string.Format("{0,3} ", rgb.G));
-                text.Append(string.Format("{0,3} ", rgb.B));
-                text.Append("255"); // A
-                if (pal.Comments[index] != null)
-                {
-                    text.Append('\t');
-                    text.AppendLine(pal.Comments[index]);
-                }
-                else
-                {
-                    text.AppendLine("\tUntitled");
-                }
+                int hb = pal[(byte)index] >> 8;
+                int lb = pal[(byte)index] & 0xFF;
+                output[outputIndex] = (byte)lb;
+                output[outputIndex + 1] = (byte)hb;
+                outputIndex += 2;
             }
-            File.WriteAllText(_args.OutputFile, text.ToString());
+            File.WriteAllBytes(_args.OutputFile, output);
         }
 
 
@@ -96,21 +73,10 @@ namespace PaletteParser.Core.Parsers
             bool firstdataLine = false;
             for (int i = 0; i < input.Length; i += 2)
             {
-                int color9b = (input[i] + input[i + 1] << 8);
+                int color9b = (input[i] + (input[i + 1] << 8));
                 data.Add(color9b);
             }
             return new DataBlocks(data, header, comments);
-        }
-
-        private (int R, int G, int B) Color2RGB(int color)
-        {
-            int temp = color & 448;
-            int r = (temp >> 1) + (temp >> 4) + (temp >> 7);
-            temp = color & 56;
-            int g = (temp << 2) + (temp >> 1) + (temp >> 4);
-            temp = color & 7;
-            int b = (temp << 5) + (temp << 2) + (temp >> 1);
-            return (r, g, b);
         }
 
         /// <summary>
