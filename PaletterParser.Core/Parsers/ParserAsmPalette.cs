@@ -1,7 +1,9 @@
-﻿using PaletteParser.Entities;
+﻿using PaletteParser.Core.Entities;
+using System;
 using System.Text;
+using System.Xml.Linq;
 
-namespace PaletteParser.Parsers
+namespace PaletteParser.Core.Parsers
 {
     public interface IParsetAsmPalette : IParserPalette { }
 
@@ -16,21 +18,18 @@ namespace PaletteParser.Parsers
         {
             string[] input = File.ReadAllLines(_args.InputFile, Encoding.ASCII);
 
-            List<int[]> data = ConvertData(input);
+            DataBlocks data = ConvertData(input);
 
-            int paletteType = DetectPalette(data);
-            if (data.Count > 0)
+            int paletteType = DetectPalette(data.PaletteData);
+            if (data.PaletteData.Count > 0)
             {
                 IPaletteGeneric palette = new PaletteGeneric(paletteType);
                 bool bit8 = palette.Bits == 8;
-                byte index = 0;
-                foreach (int[] cols in data)
+                int index = 0;
+                foreach (int color in data.PaletteData)
                 {
-                    for (int s = 0; s < cols.Length; s++)
-                    {
-                        palette[index] = cols[s];
-                        index++;
-                    }
+                    palette[(byte)index] = color;
+                    index++;
                 }
                 palette.Count = index;
                 return palette;
@@ -43,39 +42,26 @@ namespace PaletteParser.Parsers
         public void Export(IPaletteGeneric pal)
         {
             StringBuilder text = new(3096);
-            byte index = 0;
-            for (int row = 0; row < 16; row++)
+
+            foreach (string comment in pal.CommentsHeader)
+            {
+                text.Append(';').AppendLine(comment);
+            }
+            for (int index = 0; index < pal.Count; index++)
             {
                 text.Append('\t').Append("db ");
-                for (int col = 0; col < 16; col++)
+                if (pal.Bits == 8)
                 {
-
-                    if (col > 0)
-                    {
-                        text.Append(", ");
-                    }
-                    if (pal.Bits == 8)
-                    {
-                        text.Append('$').Append(pal[index].ToString("X2"));
-                    }
-                    else
-                    {
-                        int color = pal[index];
-                        text.Append('$').Append((color >> 1).ToString("X2"));
-                        text.Append(", ");
-                        text.Append('$').Append((color & 1).ToString("X2"));
-                    }
-                    index++;
-                    if(index>=pal.Count)
-                    {
-                        break;
-                    }
+                    text.Append('$').Append(pal[(byte)index].ToString("X2"));
                 }
-                if (index >= pal.Count)
+                else
                 {
-                    break;
+                    int color = pal[(byte)index];
+                    text.Append('$').Append((color >> 1).ToString("X2"));
+                    text.Append(", ");
+                    text.Append('$').Append((color & 1).ToString("X2"));
                 }
-                text.AppendLine();
+                text.Append('\t').Append("; ").AppendLine(pal.Comments[index]);
             }
             File.WriteAllText(_args.OutputFile, text.ToString().ToLower());
         }
@@ -87,17 +73,33 @@ namespace PaletteParser.Parsers
         /// </summary>
         /// <param name="input"></param>
         /// <returns></returns>
-        private List<int[]> ConvertData(string[] input)
+        private DataBlocks ConvertData(string[] input)
         {
-            List<int[]> data = new(input.Length);
+            List<string> header = [];
+            List<string> comments = new(input.Length);
+            List<int> data = new(input.Length);
+            int index = 0;
+            bool firstdataLine = false;
+
             foreach (string line in input)
             {
                 if (LineValid(line))
                 {
+                    firstdataLine = true;
                     data.Add(SplitLine(line));
+                    comments.Add(GetComment(line));
+                    index++;
+                }
+                else if (firstdataLine)      // already process the first data line we are going to assume that is a comment colour
+                {
+                    comments[index] = line;
+                }
+                else
+                {
+                    header.Add(line);
                 }
             }
-            return data;
+            return new DataBlocks(data, header, comments); ;
         }
 
         /// <summary>
@@ -111,27 +113,18 @@ namespace PaletteParser.Parsers
             return !(line.Length == 0 || line.StartsWith(';'));
         }
 
-        private int[] SplitLine(string line)
+        private int SplitLine(string line)
         {
             string[] cols = line.Trim().Replace("db ", string.Empty).Replace("db\t", string.Empty).Replace("\t", string.Empty).Replace(" ", string.Empty).Replace("$", string.Empty).Split(new char[] { ',', });
-
-            int[] colors = new int[16];
-            bool bits8 = cols.Length == 16;
-
-            int index = 0;
-            for (int i = 0; i < cols.Length; i++)
+            int colors;
+            bool bits8 = cols.Length == 1;
+            if (bits8)
             {
-
-                if (bits8)
-                {
-                    colors[index] = Convert.ToByte(cols[i], 16);
-                }
-                else
-                {
-                    colors[index] = (Convert.ToInt16(cols[i], 16) << 1) + Convert.ToInt16(cols[i + 1], 16);
-                    i++;
-                }
-                index++;
+                colors = Convert.ToByte(cols[0], 16);
+            }
+            else
+            {
+                colors = (Convert.ToInt16(cols[0], 16)) + (Convert.ToInt16(cols[1], 16) * 256);
             }
             return colors;
         }
@@ -161,21 +154,28 @@ namespace PaletteParser.Parsers
             return palette;
         }
 
-        private int DetectPalette(List<int[]> data)
+        private static string GetComment(string line)
+        {
+            int sep = line.IndexOf(';');
+            if (sep == -1)
+            {
+                return string.Empty;
+            }
+            else
+            {
+                return line.Substring(sep + 1);
+            }
+
+        }
+
+        private int DetectPalette(List<int> data)
         {
             int bits = 8;
-            foreach (int[] row in data)
+            foreach (int color in data)
             {
-                foreach (int col in row)
+                if (color > 255)
                 {
-                    if (col > 255)
-                    {
-                        bits = 9;
-                        break;
-                    }
-                }
-                if (bits == 9)
-                {
+                    bits = 9;
                     break;
                 }
             }

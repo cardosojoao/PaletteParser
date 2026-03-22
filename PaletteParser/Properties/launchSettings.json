@@ -1,0 +1,8 @@
+{
+  "profiles": {
+    "PaletteParser": {
+      "commandName": "Project",
+      "commandLineArgs": "-i\"D:\\devl\\zx\\proj\\ZXGame\\2.source\\data\\Palette\\Layer2_palette.asm\"  -o\"D:\\devl\\zx\\proj\\ZXGame\\2.source\\data\\Palette\\Layer2_palette.gpl\"\r\n\r\n"
+    }
+  }
+}

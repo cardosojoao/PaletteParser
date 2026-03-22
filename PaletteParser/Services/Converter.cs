@@ -27,6 +27,7 @@ namespace PaletteParser.Services
 
 
             IPaletteGeneric inputPalette = parser.input.Import();
+
             parser.output.Export(inputPalette);
             bool result = true  ;
             return result;
@@ -50,6 +51,11 @@ namespace PaletteParser.Services
                 case "asm":
                     {
                         parser = new ParserAsmPalette(_arguments);
+                        break;
+                    }
+                case "nxp":
+                    {
+                        parser = new ParserNxpPalette(_arguments);
                         break;
                     }
                 default:

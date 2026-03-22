@@ -1,4 +1,4 @@
-﻿namespace PaletteParser.Entities
+﻿namespace PaletteParser.Core.Entities
 {
     public interface IPaletteGeneric
     {
@@ -6,5 +6,7 @@
 
         int Bits { get; }
         int Count { get; set; }
+        string []  Comments{ get; set; }
+        List<string> CommentsHeader { get; set; }
     }
 }
