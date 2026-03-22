@@ -7,8 +7,6 @@ namespace PaletteParser.Core.Services
     {
         private readonly IArguments _arguments;
 
-
-
         public Converter(IArguments arguments)
         {
             _arguments = arguments;
