@@ -14,13 +14,17 @@ namespace PaletteParser.Entities
         public int Bits { get; private set; }
 
         public int Count { get; set; }
+        public List<string> CommentsHeader { get; set; }
+        public string[] Comments { get; set; }
 
-        private int[] paletteData;
+        private readonly int[] paletteData;
 
         public PaletteGeneric(int bits)
         {
             Bits = bits;
             paletteData = new int[256];
+            CommentsHeader = [];
+            Comments = new string[256];
         }
 
 
@@ -35,16 +39,5 @@ namespace PaletteParser.Entities
                 paletteData[index] = value;
             }
         }
-
-        //public static int Byte2Int(byte byteL, byte byteH)
-        //{
-        //    return (int)(byteH * 256 + byteL);
-        //}
-
-        //public static (int byteL, int byteH) Int2Byte(int value)
-        //{
-        //    return ((byte)(value & 255), (byte)(value >> 8));
-        //}
-
     }
 }

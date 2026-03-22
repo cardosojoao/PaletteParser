@@ -1,9 +1,9 @@
-﻿using PaletteParser.Entities;
+﻿using PaletteParser.Core.Entities;
 using System.ComponentModel;
 using System.Net.Mail;
 using System.Text;
 
-namespace PaletteParser.Parsers
+namespace PaletteParser.Core.Parsers
 {
     public interface IParsetGplPalette : IParserPalette { }
 
@@ -17,16 +17,22 @@ namespace PaletteParser.Parsers
         public IPaletteGeneric Import()
         {
             string[] input = File.ReadAllLines(_args.InputFile, Encoding.ASCII);
-
-            List<int> data = ConvertData(input);
-
-            if (data.Count > 0)
+            IPaletteGeneric palette = CreatePalette(9);     // gpl always create 9b palette
+            DataBlocks data = ConvertData(input);
+            // include all comments header
+            foreach (string comment in data.CommentsHeader)
             {
-                IPaletteGeneric palette = CreatePalette(9);     // gpl always create 9b palette
-                byte index = 0;
-                for (int color = 0; color < data.Count; color++)
+                palette.CommentsHeader.Add(comment);
+            }
+
+            if (data.PaletteData.Count > 0)
+            {
+                //IPaletteGeneric palette = CreatePalette(9);     // gpl always create 9b palette
+                int index = 0;
+                for (int color = 0; color < data.PaletteData.Count; color++)
                 {
-                    palette[index] = data[index];
+                    palette[(byte)index] = data.PaletteData[index];
+                    palette.Comments[(byte)index] = data.Comments[(byte)index];
                     index++;
                 }
                 palette.Count = index;
@@ -40,17 +46,36 @@ namespace PaletteParser.Parsers
         public void Export(IPaletteGeneric pal)
         {
             StringBuilder text = new(3096);
-            text.AppendLine("GIMP Palette");
-            text.AppendLine("Channels: RGB");
-            text.AppendLine("# Created using Palette parser utility.");
-            text.Append("# ").AppendLine(_args.InputFile);
+            if (pal.CommentsHeader.Count > 0)
+            {
+                foreach (string comment in pal.CommentsHeader)
+                {
+                    text.AppendLine(comment);
+                }
+            }
+            else
+            {
+                text.AppendLine("GIMP Palette");
+                text.AppendLine("Channels: RGBA");
+                text.AppendLine("# Created using Palette parser utility.");
+                text.Append("# ").AppendLine(_args.InputFile);
+            }
             for (int index = 0; index < pal.Count; index++)
             {
                 var rgb = Color2RGB(pal[(byte)index]);
                 text.Append(string.Format("{0,3} ", rgb.R));
                 text.Append(string.Format("{0,3} ", rgb.G));
                 text.Append(string.Format("{0,3} ", rgb.B));
-                text.AppendLine();
+                text.Append("255"); // A
+                if (pal.Comments[index] != null)
+                {
+                    text.Append('\t');
+                    text.AppendLine(pal.Comments[index]);
+                }
+                else
+                {
+                    text.AppendLine("\tUntitled");
+                }
             }
             File.WriteAllText(_args.OutputFile, text.ToString());
         }
@@ -62,35 +87,49 @@ namespace PaletteParser.Parsers
         /// </summary>
         /// <param name="input"></param>
         /// <returns></returns>
-        private List<int> ConvertData(string[] input)
+        private DataBlocks ConvertData(string[] input)
         {
+            List<string> header = [];
+            List<string> comments = new(input.Length);
             List<int> data = new(input.Length);
             int index = 0;
+            bool firstdataLine = false;
             foreach (string line in input)
             {
                 if (LineValid(line))
                 {
+                    firstdataLine = true;
                     int[] rgb = SplitLine(line);
                     rgb[0] = ((rgb[0] >> 5) << 6);    // keep first 3 bits of R
                     rgb[1] = ((rgb[1] >> 5) << 3);    // keep first 3 bits of G
                     rgb[2] = (rgb[2] >> 5);           // keep first 3 bits of B
                     int color = rgb[0] + rgb[1] + rgb[2];
-                    data.Add(color);
+                    data.Add( color );
+                    // check inline comment
+                    comments.Add(GetComment(line));
                     index++;
                 }
+                else if (firstdataLine)      // already process the first data line we are going to assume that is a comment colour
+                {
+                    comments[index] = line;
+                }
+                else
+                {
+                    header.Add(line);
+                }
             }
-            return data;
+            return new DataBlocks(data, header, comments);
         }
 
         private (int R, int G, int B) Color2RGB(int color)
         {
             int temp = color & 448;
-            int r = (temp>>1) + (temp >> 4) + (temp  >> 7);
+            int r = (temp >> 1) + (temp >> 4) + (temp >> 7);
             temp = color & 56;
             int g = (temp << 2) + (temp >> 1) + (temp >> 4);
             temp = color & 7;
-            int b = (temp<<5) + (temp << 2) + (temp>>1);
-            return ( r, g, b);
+            int b = (temp << 5) + (temp << 2) + (temp >> 1);
+            return (r, g, b);
         }
 
         /// <summary>
@@ -111,15 +150,21 @@ namespace PaletteParser.Parsers
             string[] cols = line.Split(new char[] { ' ' });
 
             // we just need 3 values
-            int[] bytes = new int[3];
+            int[] rgb = new int[3];
 
-            for (int i = 0; i < bytes.Length; i++)
+            for (int i = 0; i < rgb.Length; i++)
             {
-                bytes[i] = Convert.ToInt32(cols[i]);
+                rgb[i] = Convert.ToInt32(cols[i]);
             }
-            return bytes;
+            return rgb;
         }
 
+
+        private static string GetComment(string line)
+        {
+            string comment = new string(line.Select(c => !char.IsDigit(c) ? c : '\0').Where(c => c != '\0').ToArray()).Trim();
+            return comment;
+        }
 
         /// <summary>
         /// create a generic palette based on the first line of assembler palette
