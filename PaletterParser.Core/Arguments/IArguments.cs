@@ -6,5 +6,6 @@
         string InputType { get; set; }
         string OutputFile { get; set; }
         string OutputType { get; set; }
+        int OffSet { get; set; }
     }
 }

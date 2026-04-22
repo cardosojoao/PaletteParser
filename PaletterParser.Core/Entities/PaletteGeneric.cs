@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -19,12 +20,12 @@ namespace PaletteParser.Core.Entities
 
         private readonly int[] paletteData;
 
-        public PaletteGeneric(int bits)
+        public PaletteGeneric(int bits, int length = 256)
         {
             Bits = bits;
-            paletteData = new int[256];
-            CommentsHeader = [];
-            Comments = new string[256];
+            paletteData = new int[length];
+            CommentsHeader = new List<string>();
+            Comments = new string[length];
         }
 
 

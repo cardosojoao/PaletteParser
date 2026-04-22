@@ -13,13 +13,15 @@ namespace PaletteParser.Core
 
         public string InputType { get; set; }
         public string OutputType { get; set; }
+        public int OffSet { get; set; }  
 
 
-        public Arguments(string inputFile, string outputFile, string inputType, string outputType)
+        public Arguments(string inputFile, string outputFile, string? inputType, string? outputType, int offSet = 0)
         {
             InputFile = inputFile;
             OutputFile = outputFile;
-            if (inputType.Length == 0)
+            OffSet = offSet;
+            if (string.IsNullOrEmpty(inputType))
             {
                 InputType = Path.GetExtension(InputFile).ToLower().Replace(".",string.Empty);
             }
@@ -28,7 +30,7 @@ namespace PaletteParser.Core
                 InputType = inputType.ToLower();
             }
 
-            if (outputType.Length == 0)
+            if (string.IsNullOrEmpty(outputType))
             {
                 OutputType = Path.GetExtension(OutputFile).ToLower().Replace(".", string.Empty);
             }

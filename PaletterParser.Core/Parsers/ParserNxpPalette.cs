@@ -1,8 +1,4 @@
 ﻿using PaletteParser.Core.Entities;
-using System.ComponentModel;
-using System.Drawing;
-using System.Net.Mail;
-using System.Text;
 
 namespace PaletteParser.Core.Parsers
 {
@@ -48,13 +44,14 @@ namespace PaletteParser.Core.Parsers
             int outputIndex = 0;
             for (int index = 0; index < pal.Count; index++)
             {
-                int hb = pal[(byte)index] >> 8;
-                int lb = pal[(byte)index] & 0xFF;
+                int lb = pal[(byte)index] >> 1;
+                int hb = pal[(byte)index] & 0x001;
                 output[outputIndex] = (byte)lb;
                 output[outputIndex + 1] = (byte)hb;
                 outputIndex += 2;
             }
             File.WriteAllBytes(_args.OutputFile, output);
+
         }
 
 
@@ -64,16 +61,16 @@ namespace PaletteParser.Core.Parsers
         /// </summary>
         /// <param name="input"></param>
         /// <returns></returns>
-        private DataBlocks ConvertData(byte[] input)
+        private static DataBlocks ConvertData(byte[] input)
         {
             List<string> header = [];
-            List<string> comments = new();
-            List<int> data = new(input.Length/2);
-            int index = 0;
-            bool firstdataLine = false;
+            List<string> comments = [];
+            List<int> data = new(input.Length / 2);
             for (int i = 0; i < input.Length; i += 2)
             {
-                int color9b = (input[i] + (input[i + 1] << 8));
+                int bytelow = input[i];
+                int bytehigh = input[i + 1];
+                int color9b = (bytelow << 1) + (bytehigh);
                 data.Add(color9b);
             }
             return new DataBlocks(data, header, comments);
@@ -85,7 +82,7 @@ namespace PaletteParser.Core.Parsers
         /// <param name="cols">array with colors</param>
         /// <returns>Generic palette object</returns>
         /// <exception cref="FormatException">if can't detect if is 8 or 9 bits palette will throw bad format exception</exception>
-        private IPaletteGeneric CreatePalette(byte paletteType)
+        private static IPaletteGeneric CreatePalette(byte paletteType)
         {
             IPaletteGeneric palette = new PaletteGeneric(paletteType);
             return palette;

@@ -1,7 +1,5 @@
 ﻿using PaletteParser.Core.Entities;
-using System;
 using System.Text;
-using System.Xml.Linq;
 
 namespace PaletteParser.Core.Parsers
 {
@@ -47,6 +45,7 @@ namespace PaletteParser.Core.Parsers
             {
                 text.Append(';').AppendLine(comment);
             }
+
             for (int index = 0; index < pal.Count; index++)
             {
                 text.Append('\t').Append("db ");
@@ -57,9 +56,11 @@ namespace PaletteParser.Core.Parsers
                 else
                 {
                     int color = pal[(byte)index];
-                    text.Append('$').Append((color & 255).ToString("X2"));
+                    int highbyte = color & 0x0001;
+                    int lowbyte = (color >> 1) & 0x00ff;
+                    text.Append('$').Append((lowbyte).ToString("X2"));
                     text.Append(", ");
-                    text.Append('$').Append((color /256 ).ToString("X2"));
+                    text.Append('$').Append((highbyte).ToString("X2"));
                 }
                 text.Append('\t').Append("; ").AppendLine(pal.Comments[index]);
             }
@@ -115,7 +116,7 @@ namespace PaletteParser.Core.Parsers
 
         private int SplitLine(string line)
         {
-            string[] cols = line.Trim().Replace("db ", string.Empty).Replace("db\t", string.Empty).Replace("\t", string.Empty).Replace(" ", string.Empty).Replace("$", string.Empty).Split(new char[] { ',',';' });
+            string[] cols = line.Trim().Replace("db ", string.Empty).Replace("db\t", string.Empty).Replace("\t", string.Empty).Replace(" ", string.Empty).Replace("$", string.Empty).Split(new char[] { ',', ';' });
             int colors;
             bool bits8 = cols.Length == 1;
             if (bits8)

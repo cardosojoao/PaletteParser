@@ -1,6 +1,4 @@
 ﻿using PaletteParser.Core.Entities;
-using System.ComponentModel;
-using System.Net.Mail;
 using System.Text;
 
 namespace PaletteParser.Core.Parsers
@@ -60,6 +58,7 @@ namespace PaletteParser.Core.Parsers
                 text.AppendLine("# Created using Palette parser utility.");
                 text.Append("# ").AppendLine(_args.InputFile);
             }
+
             for (int index = 0; index < pal.Count; index++)
             {
                 var rgb = Color2RGB(pal[(byte)index]);
@@ -74,12 +73,17 @@ namespace PaletteParser.Core.Parsers
                 }
                 else
                 {
-                    text.AppendLine("\tUntitled");
+                    int color = pal[(byte)index];
+                    int r = (color & 0b111000000) >> 6;
+                    int g = (color & 0b000111000) >> 3;
+                    int b = (color & 0b000000111);
+
+                    text.Append("\t");
+                    text.AppendLine(NextColorNaming.GetName(r, g, b).Name);
                 }
             }
             File.WriteAllText(_args.OutputFile, text.ToString());
         }
-
 
 
         /// <summary>
@@ -104,7 +108,7 @@ namespace PaletteParser.Core.Parsers
                     rgb[1] = ((rgb[1] >> 5) << 3);    // keep first 3 bits of G
                     rgb[2] = (rgb[2] >> 5);           // keep first 3 bits of B
                     int color = rgb[0] + rgb[1] + rgb[2];
-                    data.Add( color );
+                    data.Add(color);
                     // check inline comment
                     comments.Add(GetComment(line));
                     index++;
