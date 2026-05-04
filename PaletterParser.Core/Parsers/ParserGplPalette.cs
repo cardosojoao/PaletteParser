@@ -1,4 +1,5 @@
 ﻿using PaletteParser.Core.Entities;
+using System.Reflection.Metadata.Ecma335;
 using System.Text;
 
 namespace PaletteParser.Core.Parsers
@@ -126,13 +127,21 @@ namespace PaletteParser.Core.Parsers
         }
 
         private (int R, int G, int B) Color2RGB(int color)
+        
         {
-            int temp = color & 448;
-            int r = (temp >> 1) + (temp >> 4) + (temp >> 7);
-            temp = color & 56;
-            int g = (temp << 2) + (temp >> 1) + (temp >> 4);
-            temp = color & 7;
-            int b = (temp << 5) + (temp << 2) + (temp >> 1);
+            byte high =(byte)(color / 256);
+            byte low = (byte)(color & 255);
+            int t = (low << 1) + high;
+
+
+            byte rt = (byte)(t >> 6);
+            byte r = (byte)((rt << 5) + (rt << 2) + (rt >> 1));
+
+            byte gt = (byte)((t & 0b000111000) >> 3);
+            byte g = (byte)((gt << 5) + (gt << 2) + (gt >> 1));
+
+            byte bt = (byte)(t & 0b000000111); 
+            byte b = (byte)((bt << 5) + (bt << 2) + (bt >> 1));
             return (r, g, b);
         }
 

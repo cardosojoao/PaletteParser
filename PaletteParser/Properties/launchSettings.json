@@ -2,7 +2,7 @@
   "profiles": {
     "PaletteParser": {
       "commandName": "Project",
-      "commandLineArgs": "-i\"D:\\devl\\zx\\proj\\ZXGame\\3.resources\\Palettes\\Dynamic\\layer2_02.nxp\"  -o\"D:\\devl\\zx\\proj\\ZXGame\\3.resources\\Palettes\\Dynamic\\layer2_02.gpl\"\r\n\r\n"
+      "commandLineArgs": "convert -i\"D:\\devl\\zx\\proj\\ZXGame\\3.resources\\Palettes\\Dynamic\\layer2_01.nxp\"  -o\"D:\\devl\\zx\\proj\\ZXGame\\3.resources\\Palettes\\Dynamic\\layer2_01.gpl\"\r\n\r\n"
     },
     "Static": {
       "commandName": "Project",
@@ -10,7 +10,7 @@
     },
     "Extract": {
       "commandName": "Project",
-      "commandLineArgs": "extract -i\"d:\\devl\\zx\\proj\\ZXGame\\3.resources\\palettes\\Static\\sprites_01.nxp\" -o\"d:\\devl\\zx\\proj\\ZXGame\\3.resources\\palettes\\Static\\sprites_01.gpl\" -f0\r\n\r\n"
+      "commandLineArgs": "convert -i\"d:\\devl\\zx\\proj\\ZXGame\\3.resources\\palettes\\dynamic\\sprites_01.nxp\" -o\"d:\\devl\\zx\\proj\\ZXGame\\3.resources\\palettes\\Static\\sprites_01.gpl\" -f0\r\n\r\n"
     }
   }
 }

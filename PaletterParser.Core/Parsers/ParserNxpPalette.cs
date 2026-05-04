@@ -70,7 +70,7 @@ namespace PaletteParser.Core.Parsers
             {
                 int bytelow = input[i];
                 int bytehigh = input[i + 1];
-                int color9b = (bytelow << 1) + (bytehigh);
+                int color9b = (bytelow ) + (bytehigh*256);
                 data.Add(color9b);
             }
             return new DataBlocks(data, header, comments);
