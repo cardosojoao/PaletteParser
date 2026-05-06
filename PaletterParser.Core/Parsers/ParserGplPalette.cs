@@ -129,10 +129,7 @@ namespace PaletteParser.Core.Parsers
         private (int R, int G, int B) Color2RGB(int color)
         
         {
-            byte high =(byte)(color / 256);
-            byte low = (byte)(color & 255);
-            int t = (low << 1) + high;
-
+            int t = color;
 
             byte rt = (byte)(t >> 6);
             byte r = (byte)((rt << 5) + (rt << 2) + (rt >> 1));
